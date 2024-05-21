@@ -8,6 +8,8 @@ from ship import Ship
 from bullet import Bullet
 from alien import Alien
 
+from button import Button
+
 
 class AlienInvasion:
     """"管理游戏资源和行为的类"""
@@ -15,7 +17,9 @@ class AlienInvasion:
     def __init__(self):
         pygame.init()
 
-        self.game_active = True
+        # 初始游戏关闭状态
+        self.game_active = False
+
         # 用来控制帧率
         self.clock = pygame.time.Clock()
 
@@ -24,6 +28,8 @@ class AlienInvasion:
         self.screen = pygame.display.set_mode(
             (self.settings.screen_width, self.settings.screen_height))
         pygame.display.set_caption("外星入侵")
+
+        self.play_btn = Button(self, 'PLAY')
 
         # 存储游戏统计信息的实例
         self.stats = GameStats(self)
@@ -55,6 +61,9 @@ class AlienInvasion:
                 self.__check_event_keyDown(event)
             elif event.type == pygame.KEYUP:
                 self.__check_event_keyUp(event)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                self._check_play_btn(mouse_pos)
 
     def __check_event_keyDown(self, event):
         if event.key == pygame.K_RIGHT:
@@ -71,6 +80,22 @@ class AlienInvasion:
             self.ship.moving_right = False
         elif event.key == pygame.K_LEFT:
             self.ship.moving_left = False
+
+    def _check_play_btn(self, mouse_pos):
+        btn_clicked = self.play_btn.rect.collidepoint(mouse_pos)
+        if btn_clicked and not self.game_active:
+            # 隐藏光标
+            pygame.mouse.set_visible(False)
+            # 重置游戏统计信息
+            self.stats.reset_stats()
+            self.game_active = True
+
+            # 清空外星人和子弹列表
+            self.aliens.empty()
+            self.bullets.empty()
+            # 创建舰队，重置飞船位置
+            self._create_fleet()
+            self.ship.center_ship()
 
     # 检查外星舰队是否到达边缘
     def _check_fleet_edges(self):
@@ -149,6 +174,7 @@ class AlienInvasion:
             sleep(0.5)
         else:
             self.game_active = False
+            pygame.mouse.set_visible(True)
 
     # ———— 更新相关逻辑————
     # 更新屏幕
@@ -159,6 +185,10 @@ class AlienInvasion:
             bullet.draw_bullet()
         self.ship.blitme()
         self.aliens.draw(self.screen)
+
+        # 如果游戏处于非活跃状态，绘制 PLAY 按钮
+        if not self.game_active:
+            self.play_btn.draw_btn()
         # 让最近绘制的屏幕可见
         pygame.display.flip()
 
