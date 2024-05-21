@@ -90,6 +90,9 @@ class AlienInvasion:
             self.stats.reset_stats()
             self.game_active = True
 
+            # 重置游戏难度
+            self.settings.initialize_dynamic_settings()
+
             # 清空外星人和子弹列表
             self.aliens.empty()
             self.bullets.empty()
@@ -127,6 +130,8 @@ class AlienInvasion:
             # 删除现有的子弹创建新的外星人舰队
             self.bullets.empty()
             self._create_fleet()
+            # 提高游戏的难度
+            self.settings.increase_speed()
 
     # —————— 各种方法 ——————
     # 开火
