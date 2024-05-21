@@ -9,6 +9,7 @@ from bullet import Bullet
 from alien import Alien
 
 from button import Button
+from scoreboard import Scoreboard
 
 
 class AlienInvasion:
@@ -29,13 +30,14 @@ class AlienInvasion:
             (self.settings.screen_width, self.settings.screen_height))
         pygame.display.set_caption("外星入侵")
 
-        self.play_btn = Button(self, 'PLAY')
-
         # 存储游戏统计信息的实例
         self.stats = GameStats(self)
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
+
+        self.play_btn = Button(self, 'PLAY')
+        self.sb = Scoreboard(self)
 
         # 创建外星人舰队
         self._create_fleet()
@@ -93,6 +95,11 @@ class AlienInvasion:
             # 重置游戏难度
             self.settings.initialize_dynamic_settings()
 
+            # 重置得分
+            self.sb.prep_score()
+            self.sb.prep_level()
+            self.sb.prep_ships()
+
             # 清空外星人和子弹列表
             self.aliens.empty()
             self.bullets.empty()
@@ -125,6 +132,11 @@ class AlienInvasion:
         # 检查子弹是否击中了外星人
         collisions = pygame.sprite.groupcollide(self.bullets, self.aliens,
                                                 True, True)
+        if collisions:
+            for aliens in collisions.values():
+                self.stats.score += self.settings.alien_point * len(aliens)
+            self.sb.prep_score()
+            self.sb.check_high_score()
         # 检查外星人编组是否为空
         if not self.aliens:
             # 删除现有的子弹创建新的外星人舰队
@@ -132,6 +144,9 @@ class AlienInvasion:
             self._create_fleet()
             # 提高游戏的难度
             self.settings.increase_speed()
+            # 提高等级
+            self.stats.level += 1
+            self.sb.prep_level()
 
     # —————— 各种方法 ——————
     # 开火
@@ -167,6 +182,7 @@ class AlienInvasion:
         if self.stats.ships_left > 0:
             self.stats.ships_left -= 1
             print(f'剩余飞船:{self.stats.ships_left}')
+            self.sb.prep_ships()
             # 清空外星人和子弹列表
             self.bullets.empty()
             self.aliens.empty()
@@ -194,6 +210,8 @@ class AlienInvasion:
         # 如果游戏处于非活跃状态，绘制 PLAY 按钮
         if not self.game_active:
             self.play_btn.draw_btn()
+        # 绘制得分牌
+        self.sb.show_score()
         # 让最近绘制的屏幕可见
         pygame.display.flip()
 

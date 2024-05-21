@@ -1,10 +1,13 @@
 import pygame
+from pygame.sprite import Sprite
 
 
-class Ship:
+class Ship(Sprite):
 
-    def __init__(self, ai_game):
+    def __init__(self, ai_game, scale=4):
         """初始化飞船并设置初始位置"""
+        super().__init__()
+
         self.screen = ai_game.screen
         self.screen_rect = ai_game.screen.get_rect()
         self.settings = ai_game.settings
@@ -13,7 +16,7 @@ class Ship:
         origin_image = pygame.image.load('./images/ship.bmp')
         size = origin_image.get_size()
         self.image = pygame.transform.scale(
-            origin_image, (int(size[0] / 4), int(size[1] / 4)))
+            origin_image, (int(size[0] / scale), int(size[1] / scale)))
         self.rect = self.image.get_rect()
 
         # 持续移动飞船的标志（一开始不移动）
